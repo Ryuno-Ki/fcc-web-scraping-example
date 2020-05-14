@@ -1,8 +1,8 @@
 from os import path
 from pathlib import PurePath
-from tempfile import TemporaryDirectory
 from unittest import TestCase
 
+from bs4 import BeautifulSoup
 import requests
 
 urls = [
@@ -30,10 +30,13 @@ urls = [
   'https://www.gesetze-im-internet.de/gg/art_19.html'
 ]
 
-with TemporaryDirectory() as tempdir:
+
+def download_urls(urls, dir):
+    paths = []
+
     for url in urls:
         file_name = PurePath(url).name
-        file_path = path.join(tempdir, file_name)
+        file_path = path.join(dir, file_name)
         text = ''
 
         try:
@@ -46,4 +49,23 @@ with TemporaryDirectory() as tempdir:
         with open(file_path, 'w') as fh:
             fh.write(text)
 
-        print('Written to', file_path)
+        paths.append(file_path)
+
+    return paths
+
+def parse_html(paths):
+    with open(paths[0], 'r') as fh:
+        content = fh.read()
+
+    soup = BeautifulSoup(content, 'html.parser')
+    links = soup.find_all('a')
+    for link in links:
+        print(link)
+
+if __name__ == "__main__":
+    paths = download_urls(urls, '.')
+
+    for path in paths:
+        print('Written to', path)
+
+    parse_html(paths)
