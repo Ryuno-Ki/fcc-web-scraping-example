@@ -1,5 +1,6 @@
 from os import path
 from pathlib import PurePath
+import sys
 from unittest import TestCase
 
 from bs4 import BeautifulSoup
@@ -23,7 +24,7 @@ urls = [
   'https://www.gesetze-im-internet.de/gg/art_14.html',
   'https://www.gesetze-im-internet.de/gg/art_15.html',
   'https://www.gesetze-im-internet.de/gg/art_16.html',
-  'https://www.gesetze-im-internet.de/gg/art_16a.html'
+  'https://www.gesetze-im-internet.de/gg/art_16a.html',
   'https://www.gesetze-im-internet.de/gg/art_17.html',
   'https://www.gesetze-im-internet.de/gg/art_17a.html',
   'https://www.gesetze-im-internet.de/gg/art_18.html',
@@ -43,6 +44,8 @@ def download_urls(urls, dir):
             response = requests.get(url)
             if response.ok:
                 text = response.text
+            else:
+                print('Bad response for', url, response.status_code)
         except requests.exceptions.ConnectionError as exc:
             print(exc)
     
@@ -53,19 +56,54 @@ def download_urls(urls, dir):
 
     return paths
 
-def parse_html(paths):
-    with open(paths[0], 'r') as fh:
+def parse_html(path):
+    with open(path, 'r') as fh:
         content = fh.read()
 
-    soup = BeautifulSoup(content, 'html.parser')
-    links = soup.find_all('a')
-    for link in links:
-        print(link)
+    return BeautifulSoup(content, 'html.parser')
 
-if __name__ == "__main__":
-    paths = download_urls(urls, '.')
+def download():
+    return download_urls(urls, '.')
 
+def extract(path):
+    return parse_html(path)
+
+def transform(soup):
+    container = soup.find(id='container')
+    if container is not None:
+        return container.get_text()
+
+def load(key, value):
+    d = {}
+    d[key] = value
+    return d
+
+def run_single(path):
+    soup = extract(path)
+    content = transform(soup)
+    unserialised = load(path, content.strip() if content is not None else '')
+    return unserialised
+
+def run_everything():
+    l = []
+
+    paths = download()
     for path in paths:
         print('Written to', path)
+        l.append(run_single(path))
 
-    parse_html(paths)
+    print(l)
+
+if __name__ == "__main__":
+    args = sys.argv
+
+    if len(args) is 1:
+      run_everything()
+    else:
+        if args[1] == 'download':
+            download()
+            print('Done')
+        if args[1] == 'parse':
+            path = args[2]
+            result = run_single(path)
+            print(result)
