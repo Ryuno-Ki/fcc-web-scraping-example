@@ -6,31 +6,6 @@ from unittest import TestCase
 from bs4 import BeautifulSoup
 import requests
 
-urls = [
-  'https://www.gesetze-im-internet.de/gg/art_1.html',
-  'https://www.gesetze-im-internet.de/gg/art_2.html',
-  'https://www.gesetze-im-internet.de/gg/art_3.html',
-  'https://www.gesetze-im-internet.de/gg/art_4.html',
-  'https://www.gesetze-im-internet.de/gg/art_5.html',
-  'https://www.gesetze-im-internet.de/gg/art_6.html',
-  'https://www.gesetze-im-internet.de/gg/art_7.html',
-  'https://www.gesetze-im-internet.de/gg/art_8.html',
-  'https://www.gesetze-im-internet.de/gg/art_9.html',
-  'https://www.gesetze-im-internet.de/gg/art_10.html',
-  'https://www.gesetze-im-internet.de/gg/art_11.html',
-  'https://www.gesetze-im-internet.de/gg/art_12.html',
-  'https://www.gesetze-im-internet.de/gg/art_12a.html',
-  'https://www.gesetze-im-internet.de/gg/art_13.html',
-  'https://www.gesetze-im-internet.de/gg/art_14.html',
-  'https://www.gesetze-im-internet.de/gg/art_15.html',
-  'https://www.gesetze-im-internet.de/gg/art_16.html',
-  'https://www.gesetze-im-internet.de/gg/art_16a.html',
-  'https://www.gesetze-im-internet.de/gg/art_17.html',
-  'https://www.gesetze-im-internet.de/gg/art_17a.html',
-  'https://www.gesetze-im-internet.de/gg/art_18.html',
-  'https://www.gesetze-im-internet.de/gg/art_19.html'
-]
-
 
 def download_urls(urls, dir):
     paths = []
@@ -62,7 +37,7 @@ def parse_html(path):
 
     return BeautifulSoup(content, 'html.parser')
 
-def download():
+def download(urls):
     return download_urls(urls, '.')
 
 def extract(path):
@@ -87,7 +62,11 @@ def run_single(path):
 def run_everything():
     l = []
 
-    paths = download()
+    with open('urls.txt', 'r') as fh:
+        urls = fh.readlines()
+    urls = [url.strip() for url in urls]
+
+    paths = download(urls)
     for path in paths:
         print('Written to', path)
         l.append(run_single(path))
@@ -101,7 +80,7 @@ if __name__ == "__main__":
       run_everything()
     else:
         if args[1] == 'download':
-            download()
+            download([args[2]])
             print('Done')
         if args[1] == 'parse':
             path = args[2]
