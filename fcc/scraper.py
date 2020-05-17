@@ -11,7 +11,6 @@ You should have received a copy of the GNU General Public License along with thi
 from os import path
 from pathlib import Path, PurePath
 import sys
-from unittest import TestCase
 
 from bs4 import BeautifulSoup
 import requests

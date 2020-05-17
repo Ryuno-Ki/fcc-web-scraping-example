@@ -21,6 +21,15 @@ python scraper.py
 python crawler.py
 ```
 
+## Testing
+
+For testing, you'll need to install the package locally as well.
+
+```sh
+pip install -e .
+python -m pytest tests/
+```
+
 ## License
 
 GPL v3 or later. See [LICENSE](./LICENSE.txt).
