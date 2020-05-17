@@ -1,10 +1,30 @@
 from os import path
-from pathlib import PurePath
+from pathlib import Path, PurePath
 import sys
 from unittest import TestCase
 
 from bs4 import BeautifulSoup
 import requests
+from wordcloud import WordCloud
+
+STOPWORDS_ADDENDUM = [
+    'Das',
+    'Der',
+    'Die',
+    'Diese',
+    'Eine',
+    'In',
+    'InhaltsverzeichnisGrundgesetz',
+    'im',
+    'Jede',
+    'Jeder',
+    'Kein',
+    'Sie',
+    'Soweit',
+    'Über'
+]
+STOPWORDS_FILE_PATH = 'stopwords.txt'
+STOPWORDS_URL = 'https://raw.githubusercontent.com/stopwords-iso/stopwords-de/master/stopwords-de.txt'
 
 
 def download_urls(urls, dir):
@@ -37,6 +57,23 @@ def parse_html(path):
 
     return BeautifulSoup(content, 'html.parser')
 
+def download_stopwords():
+    stopwords = ''
+
+    try:
+        response = requests.get(STOPWORDS_URL)
+        if response.ok:
+            stopwords = response.text
+        else:
+            print('Bad response for', url, response.status_code)
+    except requests.exceptions.ConnectionError as exc:
+        print(exc)
+
+    with open(STOPWORDS_FILE_PATH, 'w') as fh:
+        fh.write(stopwords)
+
+    return stopwords
+
 def download(urls):
     return download_urls(urls, '.')
 
@@ -48,20 +85,30 @@ def transform(soup):
     if container is not None:
         return container.get_text()
 
-def load(key, value):
-    d = {}
-    d[key] = value
-    return d
+def load(filename, text):
+    if Path(STOPWORDS_FILE_PATH).exists():
+        with open(STOPWORDS_FILE_PATH, 'r') as fh:
+            stopwords = fh.readlines()
+    else:
+        stopwords = download_stopwords()
+
+    # Strip whitespace around
+    stopwords = [stopword.strip() for stopword in stopwords]
+    # Extend stopwords with own ones, which were determined after first run
+    stopwords = stopwords + STOPWORDS_ADDENDUM
+
+    try:
+        cloud = WordCloud(stopwords=stopwords).generate(text)
+        cloud.to_file(filename.replace('.html', '.png'))
+    except ValueError:
+        print('Could not generate word cloud for', key)
 
 def run_single(path):
     soup = extract(path)
     content = transform(soup)
-    unserialised = load(path, content.strip() if content is not None else '')
-    return unserialised
+    load(path, content.strip() if content is not None else '')
 
 def run_everything():
-    l = []
-
     with open('urls.txt', 'r') as fh:
         urls = fh.readlines()
     urls = [url.strip() for url in urls]
@@ -69,9 +116,8 @@ def run_everything():
     paths = download(urls)
     for path in paths:
         print('Written to', path)
-        l.append(run_single(path))
-
-    print(l)
+        run_single(path)
+    print('Done')
 
 if __name__ == "__main__":
     args = sys.argv
@@ -84,5 +130,5 @@ if __name__ == "__main__":
             print('Done')
         if args[1] == 'parse':
             path = args[2]
-            result = run_single(path)
-            print(result)
+            run_single(path)
+            print('Done')
