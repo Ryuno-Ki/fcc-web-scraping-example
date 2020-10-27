@@ -4,7 +4,7 @@ bs4==0.0.1
 certifi==2020.4.5.1
 chardet==3.0.4
 cycler==0.10.0
-idna==2.9
+idna==2.10
 importlib-metadata==1.6.0
 kiwisolver==1.2.0
 matplotlib==3.2.1
