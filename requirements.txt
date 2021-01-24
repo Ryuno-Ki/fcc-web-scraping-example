@@ -2,7 +2,7 @@ attrs==19.3.0
 beautifulsoup4==4.9.3
 bs4==0.0.1
 certifi==2020.4.5.1
-chardet==3.0.4
+chardet==4.0.0
 cycler==0.10.0
 idna==2.9
 importlib-metadata==1.6.0
