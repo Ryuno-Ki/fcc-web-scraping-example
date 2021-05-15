@@ -4,6 +4,10 @@ This repo is accompanying an article on freeCodeCamp.
 It explains how to crawl a set of static sites as well as a
 Single Page Application.
 
+Make sure, you update the dependencies locally, as I want to
+have the versions here pinned. Be aware, they they contain known
+vulnerabilities!
+
 ## Local running
 
 It is recommended to clone this repo into a virtual environment.
